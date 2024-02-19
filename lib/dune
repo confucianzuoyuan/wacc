@@ -1,0 +1,11 @@
+(include_subdirs unqualified)
+
+(library
+ (name wacc)
+ (inline_tests)
+ (modules tokens extended_big_int num_interfaces cnums lex compile)
+ (libraries batteries ppx_deriving ppx_inline_test camlp-streams bisect_ppx)
+ (preprocess
+  (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord ppx_inline_test))
+ (instrumentation
+  (backend bisect_ppx)))

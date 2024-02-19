@@ -1,0 +1,5 @@
+(executable
+ (public_name wacc)
+ (name main)
+ (modes exe byte)
+ (libraries wacc cmdliner))
