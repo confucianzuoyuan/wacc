@@ -1,9 +1,14 @@
+(***************************************************************************)
+(*                               词法分析模块                                *)
+(***************************************************************************)
+
 open Batteries
 
 (* 标识符的正则表达式，`\b`表示单词边界 *)
 let id_regexp = Str.regexp {|[A-Za-z_][A-Za-z0-9_]*\b|}
 
 (* ^是否定字符 *)
+(* 一直匹配到不是字母, 数字和`.`为止 *)
 let int_regexp = Str.regexp {|\([0-9]+\)[^A-Za-z0-9_.]|}
 let long_regexp = Str.regexp {|\([0-9]+[lL]\)[^A-Za-z0-9_.]|}
 let uint_regexp = Str.regexp {|\([0-9]+[uU]\)[^A-Za-z0-9_.]|}
@@ -86,13 +91,19 @@ let rec lex_helper chars =
   | _ -> lex_idenfitier chars
 
 and lex_character input_chars =
+  (* `String.implode` 将字符列表拼成一个字符串 *)
   let input = String.implode input_chars in
+  (* `Str.string_match` 在字符串 input 中从位置 0 开始寻找符合正则表达式的字符串 *)
   if Str.string_match char_regexp input 0 then
+    (* `Str.matched_string` 必须在 `Str.string_match` 后面调用, 这样才能提取出匹配到的字符串 *)
+    (* `|>` 将前面的输出给到后面的输入, 将右边和左边的`'`字符切割掉. *)
     let ch = Str.matched_string input |> String.rchop |> String.lchop in
     let tok = Tokens.ConstChar ch in
+    (* 将剩下的字符串提取出来 *)
     let remaining = Str.string_after input (Str.match_end ()) in
+    (* 继续进行词法分析, explode 将字符串分解成字符列表 *)
     tok :: lex_helper (String.explode remaining)
-  else failwith ("输入从`'`开始的，单不是一个合法的字符token：" ^ input)
+  else failwith ("输入从`'`开始的, 但不是一个合法的字符token: " ^ input)
 
 and lex_string input_chars =
   let input = String.implode input_chars in
@@ -101,7 +112,7 @@ and lex_string input_chars =
     let tok = Tokens.StringLiteral str in
     let remaining = Str.string_after input (Str.match_end ()) in
     tok :: lex_helper (String.explode remaining)
-  else failwith ("输入从\"开始，但不是一个合法的字符串字面量：" ^ input)
+  else failwith ("输入从\"开始, 但不是一个合法的字符串字面量: " ^ input)
 
 and lex_constant input_chars =
   let input = String.implode input_chars in
@@ -118,13 +129,14 @@ and lex_constant input_chars =
       Tokens.ConstUInt (Big_int.of_string const_str)
     else if Str.string_match ulong_regexp input 0 then
       (* remove ul/lu suffix *)
+      (* OCaml 中传参数的方法: `~n:2` *)
       let const_str = String.rchop ~n:2 (Str.matched_group 1 input) in
       Tokens.ConstULong (Big_int.of_string const_str)
     else if Str.string_match double_regexp input 0 then
       (* remove ul/lu suffix *)
       let const_str = Str.matched_group 1 input in
       Tokens.ConstDouble (Float.of_string const_str)
-    else failwith ("词法分析错误：输入从一个数字开始，但不是一个常量：" ^ input)
+    else failwith ("词法分析错误: 输入从一个数字开始，但不是一个常量: " ^ input)
   in
   let remaining = Str.string_after input (Str.group_end 1) in
   tok :: lex_helper (String.explode remaining)
@@ -136,7 +148,7 @@ and lex_idenfitier input_chars =
     let tok = id_to_tok id_str in
     let remaining = Str.string_after input (Str.match_end ()) in
     tok :: lex_helper (String.explode remaining)
-  else failwith ("词法分析错误：输入和标识符正则表达式不匹配：" ^ input)
+  else failwith ("词法分析错误: 输入和标识符正则表达式不匹配: " ^ input)
 
 let lex input =
   let input = String.trim input in
