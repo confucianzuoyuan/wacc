@@ -45,7 +45,7 @@ let id_to_tok = function
   | "signed" -> Tokens.KWSigned
   | "double" -> Tokens.KWDouble
   | "char" -> Tokens.KWChar
-  | "sizeof" -> Tokens.KWSizeof
+  | "sizeof" -> Tokens.KWSizeOf
   | "struct" -> Tokens.KWStruct
   | other -> Tokens.Identifier other
 

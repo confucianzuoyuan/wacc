@@ -32,7 +32,7 @@ type t =
   | KWContinue
   | KWStatic
   | KWExtern
-  | KWSizeof
+  | KWSizeOf
   | KWStruct
   (* 分隔符 *)
   | OpenParen
